@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RolUsuario {
+  SUPER_ADMIN
+  VETERINARIO
+}
+
+enum EstadoConsulta {
+  BORRADOR
+  EN_CURSO
+  COMPLETADA
+  PENDIENTE
+  CANCELADA
+}
+
+enum EstadoCita {
+  PROGRAMADA
+  CONFIRMADA
+  ATENDIDA
+  CANCELADA
+  NO_ASISTE
+}
+
+model Usuario {
+  id                  Int        @id @default(autoincrement())
+  nombre              String
+  apellido            String?
+  rut                 String?    @unique
+  email               String     @unique
+  passwordHash        String     @map("password_hash")
+  rol                 RolUsuario @default(VETERINARIO)
+  activo              Boolean    @default(true)
+  debeCambiarPassword Boolean    @default(true) @map("debe_cambiar_password")
+  telefono            String?
+  ciudad              String?
+  ultimoLogin         DateTime?  @map("ultimo_login")
+  fechaCreacion       DateTime   @default(now()) @map("fecha_creacion")
+  updatedAt           DateTime   @updatedAt
+
+  tutores   Tutor[]
+  consultas Consulta[]
+  citas     Cita[]
+
+  @@map("usuarios")
+}
+
+model Tutor {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String?
+  rut           String?
+  telefono      String?
+  email         String?
+  direccion     String?
+  ciudad        String?
+  observaciones String?
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  veterinarioId Int       @map("veterinario_id")
+  veterinario   Usuario   @relation(fields: [veterinarioId], references: [id])
+  mascotas      Mascota[]
+  citas         Cita[]
+
+  @@map("tutores")
+}
+
+model Mascota {
+  id              Int       @id @default(autoincrement())
+  nombre          String
+  especie         String
+  raza            String?
+  sexo            String?
+  fechaNacimiento DateTime?
+  pesoActual      Float?
+  colorPelaje     String?
+  microchip       String?
+  esterilizado    Boolean   @default(false)
+  observaciones   String?
+  fechaCreacion   DateTime  @default(now()) @map("fecha_creacion")
+  updatedAt       DateTime  @updatedAt
+
+  tutorId Int   @map("tutor_id")
+  tutor   Tutor @relation(fields: [tutorId], references: [id])
+
+  antecedenteClinico AntecedenteClinico?
+  consultas          Consulta[]
+  vacunas            Vacuna[]
+  desparasitaciones  Desparasitacion[]
+  archivos           ArchivoClinico[]
+  citas              Cita[]
+
+  @@map("mascotas")
+}
+
+model AntecedenteClinico {
+  id                   Int      @id @default(autoincrement())
+  alergias             String?
+  enfermedadesPrevias  String?
+  medicamentosActuales String?
+  condicionCorporal    Int?
+  observaciones        String?
+  fechaCreacion        DateTime @default(now()) @map("fecha_creacion")
+  updatedAt            DateTime @updatedAt
+
+  mascotaId Int     @unique @map("mascota_id")
+  mascota   Mascota @relation(fields: [mascotaId], references: [id])
+
+  @@map("antecedentes_clinicos")
+}
+
+model Consulta {
+  id           Int            @id @default(autoincrement())
+  tipoConsulta String
+  estado       EstadoConsulta @default(BORRADOR)
+
+  fechaConsulta DateTime @default(now()) @map("fecha_consulta")
+
+  pesoActual             Float?
+  temperatura            Float?
+  frecuenciaCardiaca     Int?
+  frecuenciaRespiratoria Int?
+  trc                    String?
+  mucosas                String?
+
+  motivoConsulta   String
+  duracionSintomas String?
+  anamnesis        String?
+
+  estadoGeneral             String?
+  sistemaCardiovascular     String?
+  sistemaRespiratorio       String?
+  sistemaDigestivo          String?
+  sistemaNeurologico        String?
+  sistemaMusculoEsqueletico String?
+  pielPelaje                String?
+
+  diagnosticoPresuntivo String?
+  diagnosticoDefinitivo String?
+  indicacionesTutor     String?
+  fechaControl          DateTime?
+  observacionesCierre   String?
+
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  mascotaId Int     @map("mascota_id")
+  mascota   Mascota @relation(fields: [mascotaId], references: [id])
+
+  veterinarioId           Int                      @map("veterinario_id")
+  veterinario             Usuario                  @relation(fields: [veterinarioId], references: [id])
+  tratamientoMedicamentos TratamientoMedicamento[]
+  examenesSolicitados     ExamenSolicitado[]
+  archivos                ArchivoClinico[]
+  receta                  Receta?
+
+  @@map("consultas")
+}
+
+model Vacuna {
+  id Int @id @default(autoincrement())
+
+  nombre String
+
+  fechaAplicacion DateTime @map("fecha_aplicacion")
+
+  fechaProximaDosis DateTime? @map("fecha_proxima_dosis")
+
+  lote String?
+
+  laboratorio String?
+
+  observaciones String?
+
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  mascotaId Int     @map("mascota_id")
+  mascota   Mascota @relation(fields: [mascotaId], references: [id])
+
+  @@map("vacunas")
+}
+
+model Desparasitacion {
+  id Int @id @default(autoincrement())
+
+  producto String
+
+  fechaAplicacion DateTime @map("fecha_aplicacion")
+
+  fechaProximaDosis DateTime? @map("fecha_proxima_dosis")
+
+  dosis String?
+
+  observaciones String?
+
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  mascotaId Int     @map("mascota_id")
+  mascota   Mascota @relation(fields: [mascotaId], references: [id])
+
+  @@map("desparasitaciones")
+}
+
+model TratamientoMedicamento {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  dosis         String?
+  frecuencia    String?
+  duracion      String?
+  via           String?
+  indicaciones  String?
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  consultaId Int      @map("consulta_id")
+  consulta   Consulta @relation(fields: [consultaId], references: [id])
+
+  @@map("tratamientos_medicamentos")
+}
+
+model ExamenSolicitado {
+  id             Int       @id @default(autoincrement())
+  nombre         String
+  tipo           String?
+  estado         String    @default("SOLICITADO")
+  resultado      String?
+  observaciones  String?
+  fechaSolicitud DateTime  @default(now()) @map("fecha_solicitud")
+  fechaResultado DateTime? @map("fecha_resultado")
+  fechaCreacion  DateTime  @default(now()) @map("fecha_creacion")
+  updatedAt      DateTime  @updatedAt
+
+  consultaId Int              @map("consulta_id")
+  consulta   Consulta         @relation(fields: [consultaId], references: [id])
+  archivos   ArchivoClinico[]
+
+  @@map("examenes_solicitados")
+}
+
+model ArchivoClinico {
+  id             Int      @id @default(autoincrement())
+  nombreOriginal String   @map("nombre_original")
+  nombreArchivo  String   @map("nombre_archivo")
+  tipoMime       String?  @map("tipo_mime")
+  url            String
+  categoria      String?
+  observaciones  String?
+  fechaCreacion  DateTime @default(now()) @map("fecha_creacion")
+  updatedAt      DateTime @updatedAt
+
+  mascotaId Int     @map("mascota_id")
+  mascota   Mascota @relation(fields: [mascotaId], references: [id])
+
+  consultaId Int?      @map("consulta_id")
+  consulta   Consulta? @relation(fields: [consultaId], references: [id])
+
+  examenId Int?              @map("examen_id")
+  examen   ExamenSolicitado? @relation(fields: [examenId], references: [id])
+
+  @@map("archivos_clinicos")
+}
+
+model Receta {
+  id            Int       @id @default(autoincrement())
+  numero        String?   @unique
+  indicaciones  String?
+  observaciones String?
+  emitida       Boolean   @default(false)
+  fechaEmision  DateTime? @map("fecha_emision")
+  fechaCreacion DateTime  @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime  @updatedAt
+
+  consultaId Int      @unique @map("consulta_id")
+  consulta   Consulta @relation(fields: [consultaId], references: [id])
+
+  @@map("recetas")
+}
+
+model Cita {
+  id     Int        @id @default(autoincrement())
+  titulo String
+  tipo   String
+  estado EstadoCita @default(PROGRAMADA)
+
+  fechaInicio DateTime @map("fecha_inicio")
+  fechaFin    DateTime @map("fecha_fin")
+
+  motivo        String?
+  observaciones String?
+
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  updatedAt     DateTime @updatedAt
+
+  veterinarioId Int     @map("veterinario_id")
+  veterinario   Usuario @relation(fields: [veterinarioId], references: [id])
+
+  mascotaId Int?     @map("mascota_id")
+  mascota   Mascota? @relation(fields: [mascotaId], references: [id])
+
+  tutorId Int?   @map("tutor_id")
+  tutor   Tutor? @relation(fields: [tutorId], references: [id])
+
+  @@map("citas")
+}
