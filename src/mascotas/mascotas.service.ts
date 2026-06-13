@@ -28,8 +28,8 @@ export class MascotasService {
     const mascota = await this.prisma.mascota.create({
       data: {
         nombre: data.nombre,
-        especie: data.especie,
-        raza: data.raza,
+        especieId: Number(data.especieId),
+        razaId: data.razaId ? Number(data.razaId) : undefined,
         sexo: data.sexo,
         fechaNacimiento: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
@@ -43,6 +43,8 @@ export class MascotasService {
       },
       include: {
         tutor: true,
+        especie: true,
+        raza: true,
       },
     });
 
@@ -61,6 +63,8 @@ export class MascotasService {
       },
       include: {
         tutor: true,
+        especie: true,
+        raza: true,
       },
       orderBy: { fechaCreacion: 'desc' },
     });
@@ -76,6 +80,8 @@ export class MascotasService {
       },
       include: {
         tutor: true,
+        especie: true,
+        raza: true,
       },
     });
 
@@ -100,8 +106,8 @@ export class MascotasService {
       where: { id },
       data: {
         nombre: data.nombre,
-        especie: data.especie,
-        raza: data.raza,
+        especieId: data.especieId ? Number(data.especieId) : undefined,
+        razaId: data.razaId ? Number(data.razaId) : undefined,
         sexo: data.sexo,
         fechaNacimiento: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
@@ -115,6 +121,8 @@ export class MascotasService {
       },
       include: {
         tutor: true,
+        especie: true,
+        raza: true,
       },
     });
 
@@ -135,89 +143,95 @@ export class MascotasService {
       mensaje: 'Mascota eliminada correctamente',
     };
   }
+
   async fichaCompleta(veterinarioId: number, id: number) {
-  const mascota = await this.prisma.mascota.findFirst({
-    where: {
-      id,
-      tutor: {
-        veterinarioId,
-      },
-    },
-    include: {
-      tutor: true,
-      antecedenteClinico: true,
-      vacunas: {
-        orderBy: {
-          fechaAplicacion: 'desc',
+    const mascota = await this.prisma.mascota.findFirst({
+      where: {
+        id,
+        tutor: {
+          veterinarioId,
         },
       },
-      desparasitaciones: {
-        orderBy: {
-          fechaAplicacion: 'desc',
+      include: {
+        tutor: true,
+        especie: true,
+        raza: true,
+        antecedenteClinico: true,
+        vacunas: {
+          orderBy: {
+            fechaAplicacion: 'desc',
+          },
+        },
+        desparasitaciones: {
+          orderBy: {
+            fechaAplicacion: 'desc',
+          },
+        },
+        consultas: {
+          orderBy: {
+            fechaConsulta: 'desc',
+          },
+          include: {
+            tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            receta: true,
+            archivos: true,
+          },
+        },
+        archivos: {
+          orderBy: {
+            fechaCreacion: 'desc',
+          },
+        },
+        citas: {
+          orderBy: {
+            fechaInicio: 'asc',
+          },
         },
       },
-      consultas: {
-        orderBy: {
-          fechaConsulta: 'desc',
-        },
-        include: {
-          tratamientoMedicamentos: true,
-          examenesSolicitados: true,
-          receta: true,
-          archivos: true,
-        },
-      },
-      archivos: {
-        orderBy: {
-          fechaCreacion: 'desc',
-        },
-      },
-      citas: {
-        orderBy: {
-          fechaInicio: 'asc',
-        },
-      },
-    },
-  });
+    });
 
-  if (!mascota) {
-    throw new BadRequestException('Mascota no encontrada');
+    if (!mascota) {
+      throw new BadRequestException('Mascota no encontrada');
+    }
+
+    const ahora = new Date();
+
+    const proximaCita =
+      mascota.citas.find((cita) => new Date(cita.fechaInicio) >= ahora) ??
+      null;
+
+    return {
+      mascota: {
+        id: mascota.id,
+        nombre: mascota.nombre,
+        especieId: mascota.especieId,
+        especie: mascota.especie?.nombre,
+        razaId: mascota.razaId,
+        raza: mascota.raza?.nombre,
+        sexo: mascota.sexo,
+        fechaNacimiento: mascota.fechaNacimiento,
+        pesoActual: mascota.pesoActual,
+        colorPelaje: mascota.colorPelaje,
+        microchip: mascota.microchip,
+        esterilizado: mascota.esterilizado,
+        observaciones: mascota.observaciones,
+        fechaCreacion: mascota.fechaCreacion,
+      },
+      tutor: mascota.tutor,
+      antecedenteClinico: mascota.antecedenteClinico,
+      vacunas: mascota.vacunas,
+      desparasitaciones: mascota.desparasitaciones,
+      consultas: mascota.consultas,
+      archivos: mascota.archivos,
+      proximaCita,
+      resumen: {
+        totalConsultas: mascota.consultas.length,
+        totalVacunas: mascota.vacunas.length,
+        totalDesparasitaciones: mascota.desparasitaciones.length,
+        totalArchivos: mascota.archivos.length,
+        tieneAlergias: Boolean(mascota.antecedenteClinico?.alergias),
+      },
+    };
   }
-
-  const ahora = new Date();
-
-  const proximaCita =
-    mascota.citas.find((cita) => new Date(cita.fechaInicio) >= ahora) ?? null;
-
-  return {
-    mascota: {
-      id: mascota.id,
-      nombre: mascota.nombre,
-      especie: mascota.especie,
-      raza: mascota.raza,
-      sexo: mascota.sexo,
-      fechaNacimiento: mascota.fechaNacimiento,
-      pesoActual: mascota.pesoActual,
-      colorPelaje: mascota.colorPelaje,
-      microchip: mascota.microchip,
-      esterilizado: mascota.esterilizado,
-      observaciones: mascota.observaciones,
-      fechaCreacion: mascota.fechaCreacion,
-    },
-    tutor: mascota.tutor,
-    antecedenteClinico: mascota.antecedenteClinico,
-    vacunas: mascota.vacunas,
-    desparasitaciones: mascota.desparasitaciones,
-    consultas: mascota.consultas,
-    archivos: mascota.archivos,
-    proximaCita,
-    resumen: {
-      totalConsultas: mascota.consultas.length,
-      totalVacunas: mascota.vacunas.length,
-      totalDesparasitaciones: mascota.desparasitaciones.length,
-      totalArchivos: mascota.archivos.length,
-      tieneAlergias: Boolean(mascota.antecedenteClinico?.alergias),
-    },
-  };
-}
 }
