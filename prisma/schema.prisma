@@ -28,21 +28,28 @@ enum EstadoCita {
   NO_ASISTE
 }
 
+enum SexoUsuario {
+  M
+  F
+  OTRO
+}
+
 model Usuario {
-  id                  Int        @id @default(autoincrement())
+  id                  Int         @id @default(autoincrement())
   nombre              String
   apellido            String?
-  rut                 String?    @unique
-  email               String     @unique
-  passwordHash        String     @map("password_hash")
-  rol                 RolUsuario @default(VETERINARIO)
-  activo              Boolean    @default(true)
-  debeCambiarPassword Boolean    @default(true) @map("debe_cambiar_password")
+  rut                 String?     @unique
+  email               String      @unique
+  passwordHash        String      @map("password_hash")
+  rol                 RolUsuario  @default(VETERINARIO)
+  sexoUsuario         SexoUsuario @default(M) @map("sexo_usuario")
+  activo              Boolean     @default(true)
+  debeCambiarPassword Boolean     @default(true) @map("debe_cambiar_password")
   telefono            String?
   ciudad              String?
-  ultimoLogin         DateTime?  @map("ultimo_login")
-  fechaCreacion       DateTime   @default(now()) @map("fecha_creacion")
-  updatedAt           DateTime   @updatedAt
+  ultimoLogin         DateTime?   @map("ultimo_login")
+  fechaCreacion       DateTime    @default(now()) @map("fecha_creacion")
+  updatedAt           DateTime    @updatedAt
 
   tutores   Tutor[]
   consultas Consulta[]
@@ -180,14 +187,13 @@ model Vacuna {
   laboratorio String?
 
   observaciones String?
-  estado String @default("VIGENTE")
+  estado        String  @default("VIGENTE")
 
   fechaCreacion DateTime @default(now()) @map("fecha_creacion")
   updatedAt     DateTime @updatedAt
 
   mascotaId Int     @map("mascota_id")
   mascota   Mascota @relation(fields: [mascotaId], references: [id])
-  
 
   @@map("vacunas")
 }

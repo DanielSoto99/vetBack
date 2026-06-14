@@ -127,6 +127,7 @@ export class AuthService {
         apellido: usuario.apellido,
         email: usuario.email,
         rol: usuario.rol,
+        sexoUsuario: usuario.sexoUsuario,
         debeCambiarPassword: usuario.debeCambiarPassword,
       },
     };
@@ -142,6 +143,7 @@ export class AuthService {
         rut: true,
         email: true,
         rol: true,
+        sexoUsuario: true,
         activo: true,
         debeCambiarPassword: true,
         telefono: true,
