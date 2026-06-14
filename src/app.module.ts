@@ -17,10 +17,10 @@ import { RecetasModule } from './recetas/recetas.module';
 import { AgendaModule } from './agenda/agenda.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { EspeciesModule } from './especies/especies.module';
-import { RazasModule } from './razas/razas.module';
+
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsuariosModule, TutoresModule, MascotasModule, AntecedentesModule, ConsultasModule, VacunasModule, DesparasitacionesModule, TratamientosModule, ExamenesModule, ArchivosModule, RecetasModule, AgendaModule, DashboardModule, EspeciesModule, RazasModule],
+  imports: [PrismaModule, AuthModule, UsuariosModule, TutoresModule, MascotasModule, AntecedentesModule, ConsultasModule, VacunasModule, DesparasitacionesModule, TratamientosModule, ExamenesModule, ArchivosModule, RecetasModule, AgendaModule, DashboardModule, EspeciesModule],
   controllers: [AppController],
   providers: [AppService],
 })

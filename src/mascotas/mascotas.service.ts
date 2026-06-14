@@ -29,7 +29,7 @@ export class MascotasService {
       data: {
         nombre: data.nombre,
         especieId: Number(data.especieId),
-        razaId: data.razaId ? Number(data.razaId) : undefined,
+        raza: data.raza,
         sexo: data.sexo,
         fechaNacimiento: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
@@ -44,7 +44,6 @@ export class MascotasService {
       include: {
         tutor: true,
         especie: true,
-        raza: true,
       },
     });
 
@@ -64,7 +63,6 @@ export class MascotasService {
       include: {
         tutor: true,
         especie: true,
-        raza: true,
       },
       orderBy: { fechaCreacion: 'desc' },
     });
@@ -81,7 +79,6 @@ export class MascotasService {
       include: {
         tutor: true,
         especie: true,
-        raza: true,
       },
     });
 
@@ -107,7 +104,7 @@ export class MascotasService {
       data: {
         nombre: data.nombre,
         especieId: data.especieId ? Number(data.especieId) : undefined,
-        razaId: data.razaId ? Number(data.razaId) : undefined,
+        raza: data.raza,
         sexo: data.sexo,
         fechaNacimiento: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
@@ -122,7 +119,6 @@ export class MascotasService {
       include: {
         tutor: true,
         especie: true,
-        raza: true,
       },
     });
 
@@ -155,7 +151,6 @@ export class MascotasService {
       include: {
         tutor: true,
         especie: true,
-        raza: true,
         antecedenteClinico: true,
         vacunas: {
           orderBy: {
@@ -207,8 +202,7 @@ export class MascotasService {
         nombre: mascota.nombre,
         especieId: mascota.especieId,
         especie: mascota.especie?.nombre,
-        razaId: mascota.razaId,
-        raza: mascota.raza?.nombre,
+        raza: mascota.raza,
         sexo: mascota.sexo,
         fechaNacimiento: mascota.fechaNacimiento,
         pesoActual: mascota.pesoActual,

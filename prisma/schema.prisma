@@ -73,15 +73,12 @@ model Tutor {
 }
 
 model Mascota {
-  id              Int       @id @default(autoincrement())
-  nombre          String
+  id     Int    @id @default(autoincrement())
+  nombre String
 
   especieId       Int       @map("especie_id")
   especie         Especie   @relation(fields: [especieId], references: [id])
-
-  razaId          Int?      @map("raza_id")
-  raza            Raza?     @relation(fields: [razaId], references: [id])
-
+  raza            String?
   sexo            String?
   fechaNacimiento DateTime?
   pesoActual      Float?
@@ -324,24 +321,7 @@ model Especie {
   fechaCreacion DateTime @default(now()) @map("fecha_creacion")
   updatedAt     DateTime @updatedAt
 
-  razas     Raza[]
-  mascotas  Mascota[]
-
-  @@map("especies")
-}
-
-model Raza {
-  id            Int      @id @default(autoincrement())
-  nombre        String
-  activa        Boolean  @default(true)
-  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
-  updatedAt     DateTime @updatedAt
-
-  especieId Int     @map("especie_id")
-  especie   Especie @relation(fields: [especieId], references: [id])
-
   mascotas Mascota[]
 
-  @@unique([nombre, especieId])
-  @@map("razas")
+  @@map("especies")
 }
