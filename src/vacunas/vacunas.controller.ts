@@ -22,6 +22,11 @@ export class VacunasController {
     return this.vacunasService.listarPorMascota(req.user.id, Number(mascotaId));
   }
 
+  @Put(':id/reforzar')
+  reforzar(@Req() req: any, @Param('id') id: string) {
+    return this.vacunasService.reforzar(req.user.id, Number(id));
+  }
+
   @Put(':id')
   actualizar(@Req() req: any, @Param('id') id: string, @Body() body: any) {
     return this.vacunasService.actualizar(req.user.id, Number(id), body);

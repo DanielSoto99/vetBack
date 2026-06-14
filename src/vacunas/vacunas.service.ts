@@ -58,12 +58,14 @@ export class VacunasService {
         lote: data.lote,
         laboratorio: data.laboratorio,
         observaciones: data.observaciones,
+        estado: data.estado || 'VIGENTE',
         mascotaId,
       },
       include: {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -91,6 +93,7 @@ export class VacunasService {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -133,12 +136,14 @@ export class VacunasService {
         lote: data.lote,
         laboratorio: data.laboratorio,
         observaciones: data.observaciones,
+        estado: data.estado,
         mascotaId: data.mascotaId ? Number(data.mascotaId) : undefined,
       },
       include: {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -146,6 +151,30 @@ export class VacunasService {
 
     return {
       mensaje: 'Vacuna actualizada correctamente',
+      vacuna,
+    };
+  }
+
+  async reforzar(veterinarioId: number, id: number) {
+    await this.obtenerVacunaDelVeterinario(veterinarioId, id);
+
+    const vacuna = await this.prisma.vacuna.update({
+      where: { id },
+      data: {
+        estado: 'REFORZADA',
+      },
+      include: {
+        mascota: {
+          include: {
+            tutor: true,
+            especie: true,
+          },
+        },
+      },
+    });
+
+    return {
+      mensaje: 'Vacuna marcada como reforzada',
       vacuna,
     };
   }

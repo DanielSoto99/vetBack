@@ -180,12 +180,14 @@ model Vacuna {
   laboratorio String?
 
   observaciones String?
+  estado String @default("VIGENTE")
 
   fechaCreacion DateTime @default(now()) @map("fecha_creacion")
   updatedAt     DateTime @updatedAt
 
   mascotaId Int     @map("mascota_id")
   mascota   Mascota @relation(fields: [mascotaId], references: [id])
+  
 
   @@map("vacunas")
 }

@@ -62,14 +62,21 @@ export class DashboardService {
         },
         orderBy: { fechaInicio: 'asc' },
         include: {
-          mascota: true,
+          mascota: {
+            include: {
+              especie: true,
+              tutor: true,
+            },
+          },
           tutor: true,
         },
       }),
 
       this.prisma.vacuna.findMany({
         where: {
+          estado: 'VENCIDA',
           fechaProximaDosis: {
+            not: null,
             gte: ahora,
             lte: en30Dias,
           },
@@ -80,14 +87,19 @@ export class DashboardService {
         orderBy: { fechaProximaDosis: 'asc' },
         include: {
           mascota: {
-            include: { tutor: true },
+            include: {
+              tutor: true,
+              especie: true,
+            },
           },
         },
       }),
 
       this.prisma.vacuna.findMany({
         where: {
+          estado: 'VENCIDA',
           fechaProximaDosis: {
+            not: null,
             lt: ahora,
           },
           mascota: {
@@ -97,7 +109,10 @@ export class DashboardService {
         orderBy: { fechaProximaDosis: 'asc' },
         include: {
           mascota: {
-            include: { tutor: true },
+            include: {
+              tutor: true,
+              especie: true,
+            },
           },
         },
       }),
@@ -105,6 +120,7 @@ export class DashboardService {
       this.prisma.desparasitacion.findMany({
         where: {
           fechaProximaDosis: {
+            not: null,
             gte: ahora,
             lte: en30Dias,
           },
@@ -115,7 +131,10 @@ export class DashboardService {
         orderBy: { fechaProximaDosis: 'asc' },
         include: {
           mascota: {
-            include: { tutor: true },
+            include: {
+              tutor: true,
+              especie: true,
+            },
           },
         },
       }),
@@ -123,6 +142,7 @@ export class DashboardService {
       this.prisma.desparasitacion.findMany({
         where: {
           fechaProximaDosis: {
+            not: null,
             lt: ahora,
           },
           mascota: {
@@ -132,7 +152,10 @@ export class DashboardService {
         orderBy: { fechaProximaDosis: 'asc' },
         include: {
           mascota: {
-            include: { tutor: true },
+            include: {
+              tutor: true,
+              especie: true,
+            },
           },
         },
       }),
@@ -143,7 +166,10 @@ export class DashboardService {
         take: 5,
         include: {
           mascota: {
-            include: { tutor: true },
+            include: {
+              tutor: true,
+              especie: true,
+            },
           },
         },
       }),
@@ -156,6 +182,7 @@ export class DashboardService {
         take: 5,
         include: {
           tutor: true,
+          especie: true,
           antecedenteClinico: true,
         },
       }),
@@ -185,61 +212,7 @@ export class DashboardService {
   }
 
   async resumenAdmin() {
-  const [
-    totalVeterinarios,
-    veterinariosActivos,
-    veterinariosInactivos,
-    totalTutores,
-    totalMascotas,
-    totalConsultas,
-    totalRecetas,
-    ultimosVeterinarios,
-  ] = await Promise.all([
-    this.prisma.usuario.count({
-      where: { rol: 'VETERINARIO' },
-    }),
-
-    this.prisma.usuario.count({
-      where: {
-        rol: 'VETERINARIO',
-        activo: true,
-      },
-    }),
-
-    this.prisma.usuario.count({
-      where: {
-        rol: 'VETERINARIO',
-        activo: false,
-      },
-    }),
-
-    this.prisma.tutor.count(),
-
-    this.prisma.mascota.count(),
-
-    this.prisma.consulta.count(),
-
-    this.prisma.receta.count(),
-
-    this.prisma.usuario.findMany({
-      where: { rol: 'VETERINARIO' },
-      orderBy: { fechaCreacion: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        nombre: true,
-        apellido: true,
-        email: true,
-        activo: true,
-        debeCambiarPassword: true,
-        ultimoLogin: true,
-        fechaCreacion: true,
-      },
-    }),
-  ]);
-
-  return {
-    kpis: {
+    const [
       totalVeterinarios,
       veterinariosActivos,
       veterinariosInactivos,
@@ -247,8 +220,62 @@ export class DashboardService {
       totalMascotas,
       totalConsultas,
       totalRecetas,
-    },
-    ultimosVeterinarios,
-  };
-}
+      ultimosVeterinarios,
+    ] = await Promise.all([
+      this.prisma.usuario.count({
+        where: { rol: 'VETERINARIO' },
+      }),
+
+      this.prisma.usuario.count({
+        where: {
+          rol: 'VETERINARIO',
+          activo: true,
+        },
+      }),
+
+      this.prisma.usuario.count({
+        where: {
+          rol: 'VETERINARIO',
+          activo: false,
+        },
+      }),
+
+      this.prisma.tutor.count(),
+
+      this.prisma.mascota.count(),
+
+      this.prisma.consulta.count(),
+
+      this.prisma.receta.count(),
+
+      this.prisma.usuario.findMany({
+        where: { rol: 'VETERINARIO' },
+        orderBy: { fechaCreacion: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+          email: true,
+          activo: true,
+          debeCambiarPassword: true,
+          ultimoLogin: true,
+          fechaCreacion: true,
+        },
+      }),
+    ]);
+
+    return {
+      kpis: {
+        totalVeterinarios,
+        veterinariosActivos,
+        veterinariosInactivos,
+        totalTutores,
+        totalMascotas,
+        totalConsultas,
+        totalRecetas,
+      },
+      ultimosVeterinarios,
+    };
+  }
 }
