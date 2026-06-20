@@ -22,6 +22,11 @@ export class RecetasController {
     return this.recetasService.obtenerPorConsulta(req.user.id, Number(consultaId));
   }
 
+  @Get(':id')
+  obtener(@Req() req: any, @Param('id') id: string) {
+    return this.recetasService.obtener(req.user.id, Number(id));
+  }
+
   @Put(':id/emitir')
   emitir(@Req() req: any, @Param('id') id: string) {
     return this.recetasService.emitir(req.user.id, Number(id));

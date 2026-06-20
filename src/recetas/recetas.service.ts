@@ -5,7 +5,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export class RecetasService {
   constructor(private prisma: PrismaService) {}
 
-  async validarConsultaDelVeterinario(veterinarioId: number, consultaId: number) {
+  async validarConsultaDelVeterinario(
+    veterinarioId: number,
+    consultaId: number,
+  ) {
     const consulta = await this.prisma.consulta.findFirst({
       where: {
         id: consultaId,
@@ -14,7 +17,9 @@ export class RecetasService {
     });
 
     if (!consulta) {
-      throw new BadRequestException('Consulta no encontrada o no pertenece al veterinario');
+      throw new BadRequestException(
+        'Consulta no encontrada o no pertenece al veterinario',
+      );
     }
 
     return consulta;
@@ -34,9 +39,21 @@ export class RecetasService {
             mascota: {
               include: {
                 tutor: true,
+                especie: true,
+              },
+            },
+            veterinario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                sexoUsuario: true,
               },
             },
             tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            archivos: true,
           },
         },
       },
@@ -47,6 +64,10 @@ export class RecetasService {
     }
 
     return receta;
+  }
+
+  async obtener(veterinarioId: number, recetaId: number) {
+    return this.obtenerRecetaDelVeterinario(veterinarioId, recetaId);
   }
 
   async crear(veterinarioId: number, data: any) {
@@ -61,6 +82,21 @@ export class RecetasService {
     if (existe) {
       throw new BadRequestException('Esta consulta ya tiene una receta creada');
     }
+    if (Array.isArray(data.medicamentos) && data.medicamentos.length > 0) {
+      await this.prisma.tratamientoMedicamento.createMany({
+        data: data.medicamentos
+          .filter((med: any) => med.nombre)
+          .map((med: any) => ({
+            consultaId,
+            nombre: med.nombre,
+            dosis: med.dosis,
+            frecuencia: med.frecuencia,
+            duracion: med.duracion,
+            via: med.via,
+            indicaciones: med.indicaciones,
+          })),
+      });
+    }
 
     const receta = await this.prisma.receta.create({
       data: {
@@ -74,9 +110,21 @@ export class RecetasService {
             mascota: {
               include: {
                 tutor: true,
+                especie: true,
+              },
+            },
+            veterinario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                sexoUsuario: true,
               },
             },
             tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            archivos: true,
           },
         },
       },
@@ -104,8 +152,19 @@ export class RecetasService {
             mascota: {
               include: {
                 tutor: true,
+                especie: true,
               },
             },
+            veterinario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                sexoUsuario: true,
+              },
+            },
+            tratamientoMedicamentos: true,
           },
         },
       },
@@ -123,17 +182,21 @@ export class RecetasService {
             mascota: {
               include: {
                 tutor: true,
+                especie: true,
               },
             },
-            tratamientoMedicamentos: true,
             veterinario: {
               select: {
                 id: true,
                 nombre: true,
                 apellido: true,
                 email: true,
+                sexoUsuario: true,
               },
             },
+            tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            archivos: true,
           },
         },
       },
@@ -155,6 +218,30 @@ export class RecetasService {
         indicaciones: data.indicaciones,
         observaciones: data.observaciones,
       },
+      include: {
+        consulta: {
+          include: {
+            mascota: {
+              include: {
+                tutor: true,
+                especie: true,
+              },
+            },
+            veterinario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                sexoUsuario: true,
+              },
+            },
+            tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            archivos: true,
+          },
+        },
+      },
     });
 
     return {
@@ -166,7 +253,9 @@ export class RecetasService {
   async emitir(veterinarioId: number, recetaId: number) {
     await this.obtenerRecetaDelVeterinario(veterinarioId, recetaId);
 
-    const numero = `REC-${new Date().getFullYear()}-${String(recetaId).padStart(6, '0')}`;
+    const numero = `REC-${new Date().getFullYear()}-${String(
+      recetaId,
+    ).padStart(6, '0')}`;
 
     const receta = await this.prisma.receta.update({
       where: { id: recetaId },
@@ -174,6 +263,30 @@ export class RecetasService {
         emitida: true,
         fechaEmision: new Date(),
         numero,
+      },
+      include: {
+        consulta: {
+          include: {
+            mascota: {
+              include: {
+                tutor: true,
+                especie: true,
+              },
+            },
+            veterinario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                sexoUsuario: true,
+              },
+            },
+            tratamientoMedicamentos: true,
+            examenesSolicitados: true,
+            archivos: true,
+          },
+        },
       },
     });
 
