@@ -119,6 +119,7 @@ export class DashboardService {
 
       this.prisma.desparasitacion.findMany({
         where: {
+          estado: 'VIGENTE',
           fechaProximaDosis: {
             not: null,
             gte: ahora,
@@ -141,6 +142,7 @@ export class DashboardService {
 
       this.prisma.desparasitacion.findMany({
         where: {
+          estado: 'VIGENTE',
           fechaProximaDosis: {
             not: null,
             lt: ahora,

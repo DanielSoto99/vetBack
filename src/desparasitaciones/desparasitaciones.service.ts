@@ -16,13 +16,18 @@ export class DesparasitacionesService {
     });
 
     if (!mascota) {
-      throw new BadRequestException('Mascota no encontrada o no pertenece al veterinario');
+      throw new BadRequestException(
+        'Mascota no encontrada o no pertenece al veterinario',
+      );
     }
 
     return mascota;
   }
 
-  async obtenerDesparasitacionDelVeterinario(veterinarioId: number, id: number) {
+  async obtenerDesparasitacionDelVeterinario(
+    veterinarioId: number,
+    id: number,
+  ) {
     const desparasitacion = await this.prisma.desparasitacion.findFirst({
       where: {
         id,
@@ -55,12 +60,14 @@ export class DesparasitacionesService {
           : undefined,
         dosis: data.dosis,
         observaciones: data.observaciones,
+        estado: data.estado || 'VIGENTE',
         mascotaId,
       },
       include: {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -88,6 +95,7 @@ export class DesparasitacionesService {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -111,7 +119,10 @@ export class DesparasitacionesService {
     await this.obtenerDesparasitacionDelVeterinario(veterinarioId, id);
 
     if (data.mascotaId) {
-      await this.validarMascotaDelVeterinario(veterinarioId, Number(data.mascotaId));
+      await this.validarMascotaDelVeterinario(
+        veterinarioId,
+        Number(data.mascotaId),
+      );
     }
 
     const desparasitacion = await this.prisma.desparasitacion.update({
@@ -126,12 +137,14 @@ export class DesparasitacionesService {
           : undefined,
         dosis: data.dosis,
         observaciones: data.observaciones,
+        estado: data.estado,
         mascotaId: data.mascotaId ? Number(data.mascotaId) : undefined,
       },
       include: {
         mascota: {
           include: {
             tutor: true,
+            especie: true,
           },
         },
       },
@@ -139,6 +152,30 @@ export class DesparasitacionesService {
 
     return {
       mensaje: 'Desparasitación actualizada correctamente',
+      desparasitacion,
+    };
+  }
+
+  async renovar(veterinarioId: number, id: number) {
+    await this.obtenerDesparasitacionDelVeterinario(veterinarioId, id);
+
+    const desparasitacion = await this.prisma.desparasitacion.update({
+      where: { id },
+      data: {
+        estado: 'RENOVADA',
+      },
+      include: {
+        mascota: {
+          include: {
+            tutor: true,
+            especie: true,
+          },
+        },
+      },
+    });
+
+    return {
+      mensaje: 'Desparasitación marcada como renovada',
       desparasitacion,
     };
   }

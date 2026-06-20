@@ -22,6 +22,14 @@ export class DesparasitacionesController {
     return this.desparasitacionesService.listarPorMascota(req.user.id, Number(mascotaId));
   }
 
+  @Put(':id/renovar')
+renovar(@Req() req: any, @Param('id') id: string) {
+  return this.desparasitacionesService.renovar(
+    req.user.id,
+    Number(id),
+  );
+}
+
   @Put(':id')
   actualizar(@Req() req: any, @Param('id') id: string, @Body() body: any) {
     return this.desparasitacionesService.actualizar(req.user.id, Number(id), body);

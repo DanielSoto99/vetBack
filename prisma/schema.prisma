@@ -203,6 +203,8 @@ model Desparasitacion {
 
   producto String
 
+  estado String @default("VIGENTE")
+
   fechaAplicacion DateTime @map("fecha_aplicacion")
 
   fechaProximaDosis DateTime? @map("fecha_proxima_dosis")
